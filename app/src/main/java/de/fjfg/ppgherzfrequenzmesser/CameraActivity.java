@@ -16,6 +16,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.NonNull;
@@ -35,6 +37,12 @@ public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
+
+    long startTime = 0;
+    boolean printed = false;
+    List<Integer> redvalues = new ArrayList<>();
+    List<Integer> greenvalues = new ArrayList<>();
+    List<Integer> bluevalues = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,11 +74,27 @@ public class CameraActivity extends AppCompatActivity {
             public void analyze(@NonNull ImageProxy image) {
                 @SuppressLint("UnsafeExperimentalUsageError") Bitmap map = toBitmap(image.getImage());
                 image.close();
-                int color = map.getPixel(1270, 360);
+                int color = map.getPixel(544, 544);
                 int R = (color & 0xff0000) >> 16;
                 int G = (color & 0x00ff00) >> 8;
                 int B = (color & 0x0000ff) >> 0;
-                textView.setText("Red: " + R);
+
+                if(startTime == 0) {
+                    startTime = System.currentTimeMillis();
+                }
+                long difference = System.currentTimeMillis() - startTime;
+                if(difference > 5000 && difference < 15000) {
+                    redvalues.add(R);
+                    greenvalues.add(G);
+                    bluevalues.add(B);
+                }
+                if(difference > 16000 && !printed) {
+                    printed = true;
+                    System.out.println("Red: " + redvalues);
+                    System.out.println("Green: " + greenvalues);
+                    System.out.println("Blue: " + bluevalues);
+                }
+                textView.setText(R + ", " + G + ", " + B);
             }
         });
         OrientationEventListener orientationEventListener = new OrientationEventListener(this) {
