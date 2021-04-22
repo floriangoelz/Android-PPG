@@ -15,12 +15,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
 
-    Button cameraPrompt = findViewById(R.id.cameraPrompt);
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Button cameraPrompt = findViewById(R.id.cameraPrompt);
         cameraPrompt.setOnClickListener(v -> onClick(cameraPrompt));
     }
 
