@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -65,7 +66,7 @@ public class CameraActivity extends AppCompatActivity {
             public void analyze(@NonNull ImageProxy image) {
                 @SuppressLint("UnsafeExperimentalUsageError") Bitmap map = toBitmap(image.getImage());
                 image.close();
-                int color = map.getPixel(640, 360);
+                int color = map.getPixel(1270, 360);
                 int R = (color & 0xff0000) >> 16;
                 int G = (color & 0x00ff00) >> 8;
                 int B = (color & 0x0000ff) >> 0;
@@ -80,11 +81,12 @@ public class CameraActivity extends AppCompatActivity {
         };
         orientationEventListener.enable();
         Preview preview = new Preview.Builder().build();
+        preview.setSurfaceProvider(previewView.createSurfaceProvider());
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
-        cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
+        Camera cam = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
                 imageAnalysis, preview);
+        cam.getCameraControl().enableTorch(true);
     }
 
     private Bitmap toBitmap(Image image) {
