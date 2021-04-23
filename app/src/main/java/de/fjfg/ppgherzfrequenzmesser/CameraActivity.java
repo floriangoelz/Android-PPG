@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.OrientationEventListener;
 import android.widget.TextView;
@@ -40,9 +41,9 @@ public class CameraActivity extends AppCompatActivity {
 
     long startTime = 0;
     boolean printed = false;
-    List<Integer> redvalues = new ArrayList<>();
-    List<Integer> greenvalues = new ArrayList<>();
-    List<Integer> bluevalues = new ArrayList<>();
+    List<Double> redvalues = new ArrayList<>();
+    //List<Integer> greenvalues = new ArrayList<>();
+    //List<Integer> bluevalues = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,34 +68,44 @@ public class CameraActivity extends AppCompatActivity {
 
     private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
         ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder().setTargetResolution(new Size(1280, 720))
+                new ImageAnalysis.Builder().setTargetResolution(new Size(240, 320))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                @SuppressLint("UnsafeExperimentalUsageError") Bitmap map = toBitmap(image.getImage());
+                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
                 image.close();
-                int color = map.getPixel(544, 544);
-                int R = (color & 0xff0000) >> 16;
-                int G = (color & 0x00ff00) >> 8;
-                int B = (color & 0x0000ff) >> 0;
+                List<Integer> values = new ArrayList<>();
+                final double[] mean = new double[1];
+
+
+                        for(int i = 0; i < map.getWidth(); i++) {
+                            for(int j = 0; j < map.getHeight(); j++){
+                                int color = map.getPixel(i, j);
+                                values.add((color & 0xff0000) >> 16);
+                            }
+                        }
+                        //int G = (color & 0x00ff00) >> 8;
+                        //int B = (color & 0x0000ff) >> 0;
+                        mean[0] = getMean(values);
+
 
                 if(startTime == 0) {
                     startTime = System.currentTimeMillis();
                 }
                 long difference = System.currentTimeMillis() - startTime;
                 if(difference > 5000 && difference < 15000) {
-                    redvalues.add(R);
-                    greenvalues.add(G);
-                    bluevalues.add(B);
+                    redvalues.add(mean[0]);
+                    //greenvalues.add(G);
+                    //bluevalues.add(B);
                 }
                 if(difference > 16000 && !printed) {
                     printed = true;
                     System.out.println("Red: " + redvalues);
-                    System.out.println("Green: " + greenvalues);
-                    System.out.println("Blue: " + bluevalues);
+                    //System.out.println("Green: " + greenvalues);
+                    //System.out.println("Blue: " + bluevalues);
                 }
-                textView.setText(R + ", " + G + ", " + B);
+                textView.setText(Double.toString(mean[0]));
             }
         });
         OrientationEventListener orientationEventListener = new OrientationEventListener(this) {
@@ -133,7 +144,17 @@ public class CameraActivity extends AppCompatActivity {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
 
+        //Log.i("TEST", "width: " + image.getWidth() + " height: " + image.getHeight());
+
         byte[] imageBytes = out.toByteArray();
         return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+    }
+
+    private double getMean(List<Integer> list){
+        double sum = 0;
+        for(int i = 0; i < list.size(); i++){
+            sum += list.get(i);
+        }
+        return sum / list.size();
     }
 }
