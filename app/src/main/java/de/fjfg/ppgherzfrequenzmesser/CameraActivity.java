@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -156,6 +157,17 @@ public class CameraActivity extends AppCompatActivity {
             redvalues.clear();
         }
         Log.i("RESULT", "Redvalues: " + averages);
+        DecimalFormat df = new DecimalFormat("###.###");
+        String averageStr = "";
+        for(int i = 0; i < averages.size(); i++) {
+            averageStr += ", " + df.format(averages.get(i));
+        }
+        averageStr = averageStr.substring(2);
+        averageStr = "Redvalues: [" + averageStr + "]";
+        averageStr = averageStr.replace(", ", "%%");
+        averageStr = averageStr.replace(",", ".");
+        averageStr = averageStr.replace("%%", ", ");
+        Log.i("RESULT", averageStr);
     }
 
     private Bitmap toBitmap(Image image) {
