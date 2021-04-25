@@ -46,7 +46,9 @@ public class CameraActivity extends AppCompatActivity {
     boolean printed = false;
     List<Double> redvalues = new ArrayList<>();
     List<Bitmap> bitmaps = new ArrayList<>();
-    Random r = new Random();
+    final long OFFSET = 5000;
+    final long MEASURE_TIME = 10000;
+    final long WAIT_AFTER = 1000;
     //List<Integer> greenvalues = new ArrayList<>();
     //List<Integer> bluevalues = new ArrayList<>();
 
@@ -83,14 +85,13 @@ public class CameraActivity extends AppCompatActivity {
                     startTime = System.currentTimeMillis();
                 }
                 long difference = System.currentTimeMillis() - startTime;
-                if (difference > 5000 && difference < 15000) {
-                   bitmaps.add(toBitmap(image.getImage()));
-                }
-                image.close();
-                if (difference > 16000 && !printed) {
+                if (difference >= OFFSET && difference <= OFFSET + MEASURE_TIME) {
+                    bitmaps.add(toBitmap(image.getImage()));
+                } else if (difference > OFFSET + WAIT_AFTER + 1000 && !printed) {
                     printed = true;
                     calculateValues();
                 }
+                image.close();
 //                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
 //                image.close();
 //                List<Integer> values = new ArrayList<>();
@@ -146,11 +147,19 @@ public class CameraActivity extends AppCompatActivity {
         Log.i("RESULT", "Calculating....");
         List<Double> averages = new ArrayList<>();
         List<Integer> redvalues = new ArrayList<>();
+        int width;
+        int height;
         for (Bitmap map : bitmaps) {
-            for (int i = 0; i < map.getWidth(); i++) {
-                for (int j = 0; j < map.getHeight(); j++) {
-                    int color = map.getPixel(i, j);
-                    redvalues.add((color & 0xff0000) >> 16);
+            width = map.getWidth();
+            height = map.getHeight();
+            for (int i = 0; i < width; i++) {
+                if (i < width * 0.1 || i > width * 0.9) {
+                    for (int j = 0; j < height; j++) {
+                        if (j < height * 0.1 || j > height * 0.9) {
+                            int color = map.getPixel(i, j);
+                            redvalues.add((color & 0xff0000) >> 16);
+                        }
+                    }
                 }
             }
             averages.add(getMean(redvalues));
@@ -159,7 +168,7 @@ public class CameraActivity extends AppCompatActivity {
         Log.i("RESULT", "Redvalues: " + averages);
         DecimalFormat df = new DecimalFormat("###.###");
         String averageStr = "";
-        for(int i = 0; i < averages.size(); i++) {
+        for (int i = 0; i < averages.size(); i++) {
             averageStr += ", " + df.format(averages.get(i));
         }
         averageStr = averageStr.substring(2);
