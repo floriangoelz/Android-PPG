@@ -89,7 +89,9 @@ public class CameraActivity extends AppCompatActivity {
                     bitmaps.add(toBitmap(image.getImage()));
                 } else if (difference > OFFSET + WAIT_AFTER + 1000 && !printed) {
                     printed = true;
-                    calculateValues();
+                    calculateValuesSmallBorder();
+                    calculateValuesLargeBorder();
+                    calculateValuesFullImage();
                 }
                 image.close();
 //                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
@@ -143,8 +145,43 @@ public class CameraActivity extends AppCompatActivity {
         cam.getCameraControl().enableTorch(true);
     }
 
-    private void calculateValues() {
-        Log.i("RESULT", "Calculating....");
+    private void calculateValuesSmallBorder() {
+        Log.i("RESULT", "Calculating Small Border...");
+        List<Double> averages = new ArrayList<>();
+        List<Integer> redvalues = new ArrayList<>();
+        int width;
+        int height;
+        for (Bitmap map : bitmaps) {
+            width = map.getWidth();
+            height = map.getHeight();
+            for (int i = 0; i < width; i++) {
+                if (i < width * 0.05 || i > width * 0.95) {
+                    for (int j = 0; j < height; j++) {
+                        if (j < height * 0.05 || j > height * 0.95) {
+                            int color = map.getPixel(i, j);
+                            redvalues.add((color & 0xff0000) >> 16);
+                        }
+                    }
+                }
+            }
+            averages.add(getMean(redvalues));
+            redvalues.clear();
+        }
+        DecimalFormat df = new DecimalFormat("###.###");
+        String averageStr = "";
+        for (int i = 0; i < averages.size(); i++) {
+            averageStr += ", " + df.format(averages.get(i));
+        }
+        averageStr = averageStr.substring(2);
+        averageStr = "Redvalues small: [" + averageStr + "]";
+        averageStr = averageStr.replace(", ", "%%");
+        averageStr = averageStr.replace(",", ".");
+        averageStr = averageStr.replace("%%", ", ");
+        Log.i("RESULT", averageStr);
+    }
+
+    private void calculateValuesLargeBorder() {
+        Log.i("RESULT", "Calculating Large Border...");
         List<Double> averages = new ArrayList<>();
         List<Integer> redvalues = new ArrayList<>();
         int width;
@@ -165,14 +202,44 @@ public class CameraActivity extends AppCompatActivity {
             averages.add(getMean(redvalues));
             redvalues.clear();
         }
-        Log.i("RESULT", "Redvalues: " + averages);
         DecimalFormat df = new DecimalFormat("###.###");
         String averageStr = "";
         for (int i = 0; i < averages.size(); i++) {
             averageStr += ", " + df.format(averages.get(i));
         }
         averageStr = averageStr.substring(2);
-        averageStr = "Redvalues: [" + averageStr + "]";
+        averageStr = "Redvalues large: [" + averageStr + "]";
+        averageStr = averageStr.replace(", ", "%%");
+        averageStr = averageStr.replace(",", ".");
+        averageStr = averageStr.replace("%%", ", ");
+        Log.i("RESULT", averageStr);
+    }
+
+    private void calculateValuesFullImage() {
+        Log.i("RESULT", "Calculating Full Images...");
+        List<Double> averages = new ArrayList<>();
+        List<Integer> redvalues = new ArrayList<>();
+        int width;
+        int height;
+        for (Bitmap map : bitmaps) {
+            width = map.getWidth();
+            height = map.getHeight();
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
+                    int color = map.getPixel(i, j);
+                    redvalues.add((color & 0xff0000) >> 16);
+                }
+            }
+            averages.add(getMean(redvalues));
+            redvalues.clear();
+        }
+        DecimalFormat df = new DecimalFormat("###.###");
+        String averageStr = "";
+        for (int i = 0; i < averages.size(); i++) {
+            averageStr += ", " + df.format(averages.get(i));
+        }
+        averageStr = averageStr.substring(2);
+        averageStr = "Redvalues full: [" + averageStr + "]";
         averageStr = averageStr.replace(", ", "%%");
         averageStr = averageStr.replace(",", ".");
         averageStr = averageStr.replace("%%", ", ");
