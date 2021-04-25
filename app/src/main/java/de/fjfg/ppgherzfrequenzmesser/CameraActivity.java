@@ -1,6 +1,7 @@
 package de.fjfg.ppgherzfrequenzmesser;
 
 import android.annotation.SuppressLint;
+import android.app.Instrumentation;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -19,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.NonNull;
@@ -42,6 +44,8 @@ public class CameraActivity extends AppCompatActivity {
     long startTime = 0;
     boolean printed = false;
     List<Double> redvalues = new ArrayList<>();
+    List<Bitmap> bitmaps = new ArrayList<>();
+    Random r = new Random();
     //List<Integer> greenvalues = new ArrayList<>();
     //List<Integer> bluevalues = new ArrayList<>();
 
@@ -71,47 +75,60 @@ public class CameraActivity extends AppCompatActivity {
                 new ImageAnalysis.Builder().setTargetResolution(new Size(240, 320))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
+            @SuppressLint("UnsafeExperimentalUsageError")
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
-                image.close();
-                List<Integer> values = new ArrayList<>();
-                final double[] mean = new double[1];
-
-
-                        for(int i = 0; i < map.getWidth(); i++) {
-                            for(int j = 0; j < map.getHeight(); j++){
-                                int color = map.getPixel(i, j);
-                                values.add((color & 0xff0000) >> 16);
-                            }
-                        }
-                        //int G = (color & 0x00ff00) >> 8;
-                        //int B = (color & 0x0000ff) >> 0;
-                        mean[0] = getMean(values);
-
-
-                if(startTime == 0) {
+                if (startTime == 0) {
                     startTime = System.currentTimeMillis();
                 }
                 long difference = System.currentTimeMillis() - startTime;
-                if(difference > 5000 && difference < 15000) {
-                    redvalues.add(mean[0]);
-                    //greenvalues.add(G);
-                    //bluevalues.add(B);
+                if (difference > 5000 && difference < 15000) {
+                   bitmaps.add(toBitmap(image.getImage()));
                 }
-                if(difference > 16000 && !printed) {
+                image.close();
+                if (difference > 16000 && !printed) {
                     printed = true;
-                    System.out.println("Red: " + redvalues);
-                    //System.out.println("Green: " + greenvalues);
-                    //System.out.println("Blue: " + bluevalues);
+                    calculateValues();
                 }
-                textView.setText(Double.toString(mean[0]));
+//                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
+//                image.close();
+//                List<Integer> values = new ArrayList<>();
+//                final double[] mean = new double[1];
+//
+//
+//                        for(int i = 0; i < map.getWidth(); i++) {
+//                            for(int j = 0; j < map.getHeight(); j++){
+//                                int color = map.getPixel(i, j);
+//                                values.add((color & 0xff0000) >> 16);
+//                            }
+//                        }
+//                        //int G = (color & 0x00ff00) >> 8;
+//                        //int B = (color & 0x0000ff) >> 0;
+//                        mean[0] = getMean(values);
+//
+//
+//                if(startTime == 0) {
+//                    startTime = System.currentTimeMillis();
+//                }
+//                long difference = System.currentTimeMillis() - startTime;
+//                if(difference > 5000 && difference < 15000) {
+//                    redvalues.add(mean[0]);
+//                    //greenvalues.add(G);
+//                    //bluevalues.add(B);
+//                }
+//                if(difference > 16000 && !printed) {
+//                    printed = true;
+//                    Log.i("RESULT", "Red: " + redvalues);
+//                    //System.out.println("Green: " + greenvalues);
+//                    //System.out.println("Blue: " + bluevalues);
+//                }
+//                textView.setText(Double.toString(mean[0]));
             }
         });
         OrientationEventListener orientationEventListener = new OrientationEventListener(this) {
             @Override
             public void onOrientationChanged(int orientation) {
-               // textView.setText(Integer.toString(orientation));
+                // textView.setText(Integer.toString(orientation));
             }
         };
         orientationEventListener.enable();
@@ -119,9 +136,26 @@ public class CameraActivity extends AppCompatActivity {
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-        Camera cam = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
+        Camera cam = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector,
                 imageAnalysis, preview);
         cam.getCameraControl().enableTorch(true);
+    }
+
+    private void calculateValues() {
+        Log.i("RESULT", "Calculating....");
+        List<Double> averages = new ArrayList<>();
+        List<Integer> redvalues = new ArrayList<>();
+        for (Bitmap map : bitmaps) {
+            for (int i = 0; i < map.getWidth(); i++) {
+                for (int j = 0; j < map.getHeight(); j++) {
+                    int color = map.getPixel(i, j);
+                    redvalues.add((color & 0xff0000) >> 16);
+                }
+            }
+            averages.add(getMean(redvalues));
+            redvalues.clear();
+        }
+        Log.i("RESULT", "Redvalues: " + averages);
     }
 
     private Bitmap toBitmap(Image image) {
@@ -150,9 +184,9 @@ public class CameraActivity extends AppCompatActivity {
         return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
     }
 
-    private double getMean(List<Integer> list){
+    private double getMean(List<Integer> list) {
         double sum = 0;
-        for(int i = 0; i < list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             sum += list.get(i);
         }
         return sum / list.size();
