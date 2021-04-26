@@ -92,6 +92,7 @@ public class CameraActivity extends AppCompatActivity {
                     calculateValuesSmallBorder();
                     calculateValuesLargeBorder();
                     calculateValuesFullImage();
+                    calculateValuesOnePixel();
                 }
                 image.close();
 //                @SuppressLint("UnsafeExperimentalUsageError") final Bitmap map = toBitmap(image.getImage());
@@ -240,6 +241,29 @@ public class CameraActivity extends AppCompatActivity {
         }
         averageStr = averageStr.substring(2);
         averageStr = "Redvalues full: [" + averageStr + "]";
+        averageStr = averageStr.replace(", ", "%%");
+        averageStr = averageStr.replace(",", ".");
+        averageStr = averageStr.replace("%%", ", ");
+        Log.i("RESULT", averageStr);
+    }
+
+    private void calculateValuesOnePixel() {
+        Log.i("RESULT", "Calculating One Pixel...");
+        List<Integer> values = new ArrayList<>();
+        int x, y;
+        for (Bitmap map : bitmaps) {
+            x = map.getWidth()/2;
+            y = map.getHeight()/2;
+            int color = map.getPixel(x, y);
+            values.add((color & 0xff0000) >> 16);
+        }
+        DecimalFormat df = new DecimalFormat("###.###");
+        String averageStr = "";
+        for (int i = 0; i < values.size(); i++) {
+            averageStr += ", " + df.format(values.get(i));
+        }
+        averageStr = averageStr.substring(2);
+        averageStr = "Redvalues One Pixel: [" + averageStr + "]";
         averageStr = averageStr.replace(", ", "%%");
         averageStr = averageStr.replace(",", ".");
         averageStr = averageStr.replace("%%", ", ");
