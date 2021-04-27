@@ -51,7 +51,7 @@ public class CameraActivity extends AppCompatActivity {
     List<Double> redvalues = new ArrayList<>();
     List<Bitmap> bitmaps = new ArrayList<>();
     final long OFFSET = 5000;
-    final long MEASURE_TIME = 20000;
+    final long MEASURE_TIME = 15000;
     final long WAIT_AFTER = 1000;
     //List<Integer> greenvalues = new ArrayList<>();
     //List<Integer> bluevalues = new ArrayList<>();
@@ -94,7 +94,8 @@ public class CameraActivity extends AppCompatActivity {
                 } else if (difference > OFFSET + WAIT_AFTER + 1000 && !printed) {
                     printed = true;
                     calculateValuesSmallBorder();
-                    //calculateValuesLargeBorder();
+                    //calculateValuesMiddleFrame();
+                    calculateValuesLargeBorder();
                     //calculateValuesFullImage();
                     //calculateValuesOnePixel();
                 }
@@ -282,6 +283,41 @@ public class CameraActivity extends AppCompatActivity {
 
         String popuptext = "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc;
         showPopup("Pulsfeedback", popuptext);
+    }
+
+    private void calculateValuesMiddleFrame() {
+        Log.i("RESULT", "Calculating Middle-Frame...");
+        List<Double> averages = new ArrayList<>();
+        List<Integer> redvalues = new ArrayList<>();
+        int width;
+        int height;
+        for (Bitmap map : bitmaps) {
+            width = map.getWidth();
+            height = map.getHeight();
+            for (int i = 0; i < width; i++) {
+                if (i > width * 0.45 && i < width * 0.55) {
+                    for (int j = 0; j < height; j++) {
+                        if (j > height * 0.45 && j < height * 0.55) {
+                            int color = map.getPixel(i, j);
+                            redvalues.add((color & 0xff0000) >> 16);
+                        }
+                    }
+                }
+            }
+            averages.add(getMean(redvalues));
+            redvalues.clear();
+        }
+        DecimalFormat df = new DecimalFormat("###.###");
+        String averageStr = "";
+        for (int i = 0; i < averages.size(); i++) {
+            averageStr += ", " + df.format(averages.get(i));
+        }
+        averageStr = averageStr.substring(2);
+        averageStr = "Redvalues middleframe: [" + averageStr + "]";
+        averageStr = averageStr.replace(", ", "%%");
+        averageStr = averageStr.replace(",", ".");
+        averageStr = averageStr.replace("%%", ", ");
+        Log.i("RESULT", averageStr);
     }
 
     private void calculateValuesLargeBorder() {
