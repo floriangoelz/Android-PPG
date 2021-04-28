@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -95,7 +96,7 @@ public class CameraActivity extends AppCompatActivity {
                     printed = true;
                     calculateValuesSmallBorder();
                     //calculateValuesMiddleFrame();
-                    calculateValuesLargeBorder();
+                    //calculateValuesLargeBorder();
                     //calculateValuesFullImage();
                     //calculateValuesOnePixel();
                 }
@@ -193,6 +194,65 @@ public class CameraActivity extends AppCompatActivity {
         return frequency * 60;
     }
 
+    private double getHeartRateFourier(List<Double> averages){
+        List<Double> smoothValues = getSmoothValues(averages);
+        DoubleFFT_1D fft = new DoubleFFT_1D(smoothValues.size());
+        double[] values = new double[smoothValues.size() * 2];
+        List<Double> realValues = new ArrayList<>();
+        List<Double> imaginaryValues = new ArrayList<>();
+        List<Double> absoluteValues = new ArrayList<>();
+        for (int i = 0; i < smoothValues.size(); i++) {
+            values[i] = smoothValues.get(i);
+        }
+        fft.realForward(values);
+
+        for(int i = 0; i < values.length; i++){
+            if(i % 2 == 0){
+                realValues.add(values[i]);
+            }else{
+                imaginaryValues.add(values[i]);
+            }
+        }
+
+        for(int i = 0; i < realValues.size(); i++){
+            double absoluteValue = Math.sqrt(realValues.get(i) * realValues.get(i) + imaginaryValues.get(i) * imaginaryValues.get(i));
+            absoluteValues.add(absoluteValue);
+        }
+
+        String arrayStr = "";
+        for (int i = 0; i < absoluteValues.size(); i++) {
+            arrayStr += ", " + absoluteValues.get(i);
+        }
+        arrayStr = arrayStr.substring(2);
+        Log.i("FOURIER", arrayStr);
+
+        List<Integer> peaks = getPeaks(absoluteValues);
+
+
+
+        for(int i = peaks.size() - 1; i >= 0; i--){
+            //remove peaks below 0.5 Hz and above 5 Hz
+            if(peaks.get(i) < 10 || peaks.get(i) > 75){
+                peaks.remove(i);
+            }
+        }
+
+        String log = "";
+
+        double max = 0;
+        double maxIndex = 0;
+        for(int i = 0; i < peaks.size(); i++){
+            log += " " + peaks.get(i);
+            if(absoluteValues.get(peaks.get(i)) > max){
+                max = absoluteValues.get(peaks.get(i));
+                maxIndex = peaks.get(i);
+            }
+        }
+
+        Log.i("FOURIER", "peaks: " + log + "\n" + maxIndex);
+        return (maxIndex / 15) * 60;
+    }
+
     private List<Double> getSmoothValues(List<Double> averages) {
         List<Double> smooth = new ArrayList<>();
         double[] currentValues = new double[7];
@@ -280,8 +340,9 @@ public class CameraActivity extends AppCompatActivity {
 
         double distanceCalc = getHeartRateDistance(averages);
         double countCalc = getHeartRateCountPeaks(averages);
+        double fourierCalc = getHeartRateFourier(averages);
 
-        String popuptext = "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc;
+        String popuptext = "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc + "\n" + "BPM via Fourier: " + fourierCalc;
         showPopup("Pulsfeedback", popuptext);
     }
 
