@@ -6,35 +6,55 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="500dp"
             android:id="@+id/container"
-            android:textSize="20sp"
+            android:layout_width="match_parent"
+            android:layout_height="182dp"
             android:layout_gravity="center"
-            android:text="This is a CameraX test app!"
-            android:gravity="center">
-        </TextView>
+            android:gravity="center"
+            android:text="BLA BLA BLA"
+            android:textSize="20sp"></TextView>
 
         <Button
-            android:id="@+id/cameraPrompt"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Open Camera" />
-    </LinearLayout>
+            android:id="@+id/startMeasurement"
+            android:layout_width="170dp"
+            android:layout_height="66dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="120dp"
+            android:layout_marginEnd="120dp"
+            android:layout_marginBottom="110dp"
+            android:text="Messung starten" />
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="wrap_content"
+            android:layout_height="138dp"
+            android:layout_above="@+id/progressBar"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="104dp"
+            android:layout_marginEnd="104dp"
+            android:layout_marginBottom="7dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/startMeasurement"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="104dp"
+            android:layout_marginEnd="104dp"
+            android:layout_marginBottom="130dp"
+            android:max="100"/>
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
