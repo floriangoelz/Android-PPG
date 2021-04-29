@@ -96,7 +96,7 @@ public class CameraActivity extends AppCompatActivity {
                     printed = true;
                     calculateValuesSmallBorder();
                     //calculateValuesMiddleFrame();
-                    //calculateValuesLargeBorder();
+                    calculateValuesLargeBorder();
                     //calculateValuesFullImage();
                     //calculateValuesOnePixel();
                 }
@@ -181,7 +181,7 @@ public class CameraActivity extends AppCompatActivity {
     private double getHeartRateCountPeaks(List<Double> averages) {
         List<Double> smoothValues = getSmoothValues(averages);
         List<Integer> peaks = getPeaks(smoothValues);
-        return peaks.size() * (60 / (MEASURE_TIME / 1000));
+        return peaks.size() * 0.5 * (60 / (MEASURE_TIME / 1000));
     }
 
     private double getHeartRateDistance(List<Double> averages) {
@@ -191,7 +191,7 @@ public class CameraActivity extends AppCompatActivity {
         List<Integer> peaks = getPeaks(smoothValues);
         List<Integer> distances = getDistances(peaks);
         frequency = 1 / (getMedian(distances) / sampling_rate);
-        return frequency * 60;
+        return frequency * 0.5 * 60;
     }
 
     private double getHeartRateFourier(List<Double> averages){
@@ -342,7 +342,7 @@ public class CameraActivity extends AppCompatActivity {
         double countCalc = getHeartRateCountPeaks(averages);
         double fourierCalc = getHeartRateFourier(averages);
 
-        String popuptext = "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc + "\n" + "BPM via Fourier: " + fourierCalc;
+        String popuptext = "Small border: \n" + "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc + "\n" + "BPM via Fourier: " + fourierCalc;
         showPopup("Pulsfeedback", popuptext);
     }
 
@@ -414,6 +414,13 @@ public class CameraActivity extends AppCompatActivity {
         averageStr = averageStr.replace(",", ".");
         averageStr = averageStr.replace("%%", ", ");
         Log.i("RESULT", averageStr);
+
+        double distanceCalc = getHeartRateDistance(averages);
+        double countCalc = getHeartRateCountPeaks(averages);
+        double fourierCalc = getHeartRateFourier(averages);
+
+        String popuptext = "Large border: \n" + "BPM via distance: " + distanceCalc + "\n" + "BPM via count: " + countCalc + "\n" + "BPM via Fourier: " + fourierCalc;
+        showPopup("Pulsfeedback", popuptext);
     }
 
     private void calculateValuesFullImage() {
