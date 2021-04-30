@@ -31,6 +31,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'androidx.cardview:cardview:1.0.0'
     def camerax_version = "1.0.0-beta07"
 
     implementation 'com.github.wendykierp:JTransforms:3.1'

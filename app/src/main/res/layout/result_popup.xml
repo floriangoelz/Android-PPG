@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@drawable/rounded_corners"
+    android:backgroundTint="#6C6B82"
     android:layout_height="250dp"
     android:layout_width="350dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:fontFamily="@font/montserrat_semibold"
+        android:textColor="#F1F2F6"
         android:text="Ergebnis"
-        android:textSize="25dp"
-        android:textAlignment="center">
+        android:textSize="24dp"
+        android:gravity="center"
+        android:background="@drawable/rounded_corners_top"
+        android:backgroundTint="#56556B">
 
     </TextView>
 
@@ -17,18 +22,27 @@
         android:id="@+id/resultText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true">
+        android:layout_centerInParent="true"
+        android:fontFamily="@font/montserrat_semibold"
+        android:textColor="#F1F2F6"
+        android:textSize="40dp"
+        android:text="87 BPM">
     </TextView>
 
     <Button
         android:id="@+id/okButton"
-        android:layout_width="150dp"
-        android:layout_height="80dp"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_below="@+id/resultText"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="160dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_corners"
+        android:backgroundTint="#838296"
+        android:fontFamily="@font/montserrat_semibold"
         android:text="OK"
-        android:textSize="20dp">
-    </Button>
+        android:textColor="#F1F2F6"
+        android:textSize="22dp"/>
 
 
 </RelativeLayout>

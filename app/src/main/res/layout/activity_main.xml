@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="#4C4B63">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -14,23 +15,35 @@
         <TextView
             android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="182dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:gravity="center"
-            android:text="BLA BLA BLA"
-            android:textSize="20sp"></TextView>
+            android:gravity="start"
+            android:paddingTop="15dp"
+            android:paddingLeft="15dp"
+            android:paddingBottom="10dp"
+            android:text="1. Fingerspitze auf den Blitz legen\n\n2. Finger auf Hauptkamera ablegen\n\n3. Messung starten"
+            android:textSize="18sp"
+            android:textColor="#F1F2F6"
+            android:fontFamily="@font/montserrat_medium"
+            android:background="#67667A"/>
 
         <Button
             android:id="@+id/startMeasurement"
-            android:layout_width="170dp"
+            android:layout_width="160dp"
             android:layout_height="66dp"
+            android:layout_above="@+id/warning"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="120dp"
-            android:layout_marginEnd="120dp"
-            android:layout_marginBottom="110dp"
-            android:text="Messung starten" />
+            android:layout_marginStart="110dp"
+            android:layout_marginEnd="109dp"
+            android:layout_marginBottom="100dp"
+            android:background="@drawable/rounded_corners"
+            android:backgroundTint="#5386EA"
+            android:fontFamily="@font/montserrat_semibold"
+            android:text="Messung starten"
+            android:textAllCaps="false"
+            android:textColor="#F1F2F6"
+            android:textSize="18sp" />
 
         <androidx.camera.view.PreviewView
             android:id="@+id/previewView"
@@ -41,20 +54,38 @@
             android:layout_alignParentEnd="true"
             android:layout_marginStart="104dp"
             android:layout_marginEnd="104dp"
-            android:layout_marginBottom="7dp" />
+            android:layout_marginBottom="7dp"/>
 
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleY="2"
             android:layout_above="@+id/startMeasurement"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="104dp"
             android:layout_marginEnd="104dp"
-            android:layout_marginBottom="130dp"
+            android:layout_marginBottom="90dp"
+            android:backgroundTint="#5386EA"
             android:max="100"/>
+
+        <TextView
+            android:id="@+id/warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="-21dp"
+            android:background="#67667A"
+            android:fontFamily="@font/montserrat_medium"
+            android:gravity="center"
+            android:paddingLeft="12dp"
+            android:paddingBottom="22dp"
+            android:text="Diese App ist ein Prototyp und kann eine \nmedizinische Pulsmessung nicht ersetzen"
+            android:textColor="#F1F2F6"
+            android:textSize="14dp" />
     </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
