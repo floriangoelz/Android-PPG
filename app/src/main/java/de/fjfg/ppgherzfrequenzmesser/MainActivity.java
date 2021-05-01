@@ -12,6 +12,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+
 import de.fjfg.ppgherzfrequenzmesser.classes.Measurement;
 
 import android.Manifest;
@@ -46,12 +47,14 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * The main activity of the application. Used to handle all visuals that are shown on the main screen
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
 
     private PreviewView previewView;
-    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
 
     Dialog resultDialog;
     ProgressBar progressBar;
@@ -62,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button cameraPrompt = findViewById(R.id.startMeasurement);
-        cameraPrompt.setOnClickListener(v -> onClick(cameraPrompt));
+        Button startMeasure = findViewById(R.id.startMeasurement);
+        startMeasure.setOnClickListener(v -> onClick());
 
         previewView = findViewById(R.id.previewView);
         progressBar = findViewById(R.id.progressBar);
@@ -71,7 +74,14 @@ public class MainActivity extends AppCompatActivity {
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
     }
 
-    private void onClick(View v) {
+    /**
+     * Gets called whenever the button to
+     * start the pulse measurement is pressed
+     * <p>
+     * Accesses the devices camera if the permission
+     * is granted. Otherwise asks the user for permission
+     */
+    private void onClick() {
         if (hasCameraPermission()) {
             enableCamera();
         } else {
@@ -79,6 +89,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Is used to determine whether the application
+     * is allowed to access the smartphones camera
+     *
+     * @return true if the app is allowed to use the
+     * smartphone camera, otherwise false
+     */
     private boolean hasCameraPermission() {
         return ContextCompat.checkSelfPermission(
                 this,
@@ -86,9 +103,22 @@ public class MainActivity extends AppCompatActivity {
         ) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * Checks if a measurement is already running before starting to measure
+     * <p>
+     * If there is no active measurement:
+     * Binds a cameraProvider, creates an Instance of measurement and uses it to
+     * start measuring the pulse data. Also sets the measuring flag to true so
+     * another measurement can not be started while there is one that is already
+     * running.
+     * <p>
+     * If there is an active measurement:
+     * Shows an error to the user that there is a currently active measurement that
+     * needs to be finished before starting a new one
+     */
     private void enableCamera() {
-        if(!measuring) {
-            cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        if (!measuring) {
+            ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
             MainActivity context = this;
             cameraProviderFuture.addListener(new Runnable() {
                 @Override
@@ -103,11 +133,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }, ContextCompat.getMainExecutor(this));
-        }else{
+        } else {
             //TODO Fehlermeldung Messung läuft gerade
         }
     }
 
+    /**
+     * Opens a standard android prompt that asks the user
+     * for permission to use the camera of the device
+     */
     private void requestPermission() {
         ActivityCompat.requestPermissions(
                 this,
@@ -116,11 +150,23 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Is used to open the custom popup defined inside result_popup.xml
+     * <p>
+     * Before opening the popup:
+     * - sets the measured bpm inside the popup so the actual result is shown
+     * - adds an on click listener that resets the measuring flag (so a new
+     * measure can be started)
+     * - removes the option to dismiss the popup by clicking next to the popup
+     *
+     * @param result the result bpm that shall be shown inside the popup
+     */
     private void showDialog(double result) {
         resultDialog.setContentView(R.layout.result_popup);
         TextView resultText = resultDialog.findViewById(R.id.resultText);
         Button okButton = resultDialog.findViewById(R.id.okButton);
-        resultText.setText((int)result + " BPM");
+        // casting to result to an int since a pulse with decimals wouldn't make sense
+        resultText.setText((int) result + " BPM");
 
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,7 +180,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void showProgress(int progress){
+    /**
+     * Updates the status of the progress bar to a percentage (0-100)
+     * Values outside the bounds are ignored by the progressBar
+     *
+     * @param progress the current progress that will be shown in the progress bar
+     */
+    public void showProgress(int progress) {
         progressBar.setProgress(progress);
     }
 
