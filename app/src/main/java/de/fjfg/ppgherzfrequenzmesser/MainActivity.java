@@ -53,6 +53,7 @@ import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -61,6 +62,7 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
+    private static final String LIGHT_MESSAGE = "Messung starten um Umgebungslicht anzuzeigen";
 
     private PreviewView previewView;
 
@@ -88,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        light.setText(LIGHT_MESSAGE);
     }
 
     /**
@@ -210,11 +214,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void showPulseResult(double result) {
         ambientLight.stopLightSensor();
+        light.setText(LIGHT_MESSAGE);
         showDialog(result);
     }
 
     public void showLightResult(double result) {
-        light.setText("Licht: " + (int) result + " lx"); // only .0 lx values are returned
-        Log.i("BLA", "Licht: " + result);
+        light.setText("Umgebungslicht: " + (int) result + " lx"); // only .0 lx values are returned
     }
 }

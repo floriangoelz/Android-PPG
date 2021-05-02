@@ -71,7 +71,6 @@ public class Measurement {
      */
     private void finishMeasuring(){
         cameraProvider.unbindAll();
-        Log.i("BLA", bitmaps.size() + " Bilder");
         double result = calculateValues();
         context.showPulseResult(result);
     }
@@ -168,7 +167,6 @@ public class Measurement {
      * @return the measured BPM after finishing all calculations
      */
     private double calculateValues() {
-        Log.i("RESULT", "Calculating Large Border...");
         List<Double> averages = new ArrayList<>();
         List<Integer> redvalues = new ArrayList<>();
         int width;
@@ -177,9 +175,9 @@ public class Measurement {
             width = map.getWidth();
             height = map.getHeight();
             for (int i = 0; i < width; i++) {
-                if (i < width * 0.1 || i > width * 0.9) {
+                if (i <= width * 0.1 || i >= width * 0.9) {
                     for (int j = 0; j < height; j++) {
-                        if (j < height * 0.1 || j > height * 0.9) {
+                        if (j <= height * 0.1 || j >= height * 0.9) {
                             int color = map.getPixel(i, j);
                             redvalues.add((color & 0xff0000) >> 16);
                         }
@@ -187,6 +185,8 @@ public class Measurement {
                 }
             }
             averages.add(getMean(redvalues));
+            Log.i("BLA", "" + redvalues.size());
+            System.out.println(redvalues.size());
             redvalues.clear();
         }
         DecimalFormat df = new DecimalFormat("###.###");
@@ -205,24 +205,11 @@ public class Measurement {
     }
 
     /**
-     * Gets the average of all values in the list
+     * Is used to analyse the averages by performing a fourier transform.
+     * The heartrate is calculated by finding the maximum of the resulting frequency spectrum
      *
-     * @param list A list containing all redvalues
-     * @return the average of the given redvalues
-     */
-    private double getMean(List<Integer> list) {
-        double sum = 0;
-        for (int i = 0; i < list.size(); i++) {
-            sum += list.get(i);
-        }
-        return sum / list.size();
-    }
-
-    /**
-     * TODO: Florian das musst du machen.
-     *
-     * @param averages
-     * @return
+     * @param averages the averages of all measured red values per image
+     * @return the calculated heartrate in bpm
      */
     private double getHeartRateFourier(List<Double> averages){
         List<Double> smoothValues = getSmoothValues(averages);
@@ -231,11 +218,16 @@ public class Measurement {
         List<Double> realValues = new ArrayList<>();
         List<Double> imaginaryValues = new ArrayList<>();
         List<Double> absoluteValues = new ArrayList<>();
+
+        //insert smooth values in double array for fourier transform
         for (int i = 0; i < smoothValues.size(); i++) {
             values[i] = smoothValues.get(i);
         }
+
+        //execute fourier transform
         fft.realForward(values);
 
+        //separate real and imaginary values of the result
         for(int i = 0; i < values.length; i++){
             if(i % 2 == 0){
                 realValues.add(values[i]);
@@ -244,20 +236,14 @@ public class Measurement {
             }
         }
 
+        //calculate the absolute value of each result
         for(int i = 0; i < realValues.size(); i++){
             double absoluteValue = Math.sqrt(realValues.get(i) * realValues.get(i) + imaginaryValues.get(i) * imaginaryValues.get(i));
             absoluteValues.add(absoluteValue);
         }
 
-        String arrayStr = "";
-        for (int i = 0; i < absoluteValues.size(); i++) {
-            arrayStr += ", " + absoluteValues.get(i);
-        }
-        arrayStr = arrayStr.substring(2);
-        Log.i("FOURIER", arrayStr);
-
+        //get maximums of frequency spectrum
         List<Integer> peaks = getPeaks(absoluteValues);
-
 
 
         for(int i = peaks.size() - 1; i >= 0; i--){
@@ -267,19 +253,18 @@ public class Measurement {
             }
         }
 
-        String log = "";
 
+        //find highest maximum
         double max = 0;
         double maxIndex = 0;
         for(int i = 0; i < peaks.size(); i++){
-            log += " " + peaks.get(i);
             if(absoluteValues.get(peaks.get(i)) > max){
                 max = absoluteValues.get(peaks.get(i));
                 maxIndex = peaks.get(i);
             }
         }
 
-        Log.i("FOURIER", "peaks: " + log + "\n" + maxIndex);
+        //calculate heart rate
         return (maxIndex / 15) * 60;
     }
 
@@ -321,6 +306,20 @@ public class Measurement {
             avg += values[i];
         }
         return avg / values.length;
+    }
+
+    /**
+     * Gets the average of all values in the list
+     *
+     * @param list A list containing all redvalues
+     * @return the average of the given redvalues
+     */
+    private double getMean(List<Integer> list) {
+        double sum = 0;
+        for (int i = 0; i < list.size(); i++) {
+            sum += list.get(i);
+        }
+        return sum / list.size();
     }
 
     /**
