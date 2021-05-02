@@ -73,7 +73,7 @@ public class Measurement {
         cameraProvider.unbindAll();
         Log.i("BLA", bitmaps.size() + " Bilder");
         double result = calculateValues();
-        context.showResult(result);
+        context.showPulseResult(result);
     }
 
     /**

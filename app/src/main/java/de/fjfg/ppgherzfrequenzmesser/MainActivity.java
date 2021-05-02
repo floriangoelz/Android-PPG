@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
+import de.fjfg.ppgherzfrequenzmesser.classes.AmbientLight;
 import de.fjfg.ppgherzfrequenzmesser.classes.Measurement;
 
 import android.Manifest;
@@ -65,14 +66,12 @@ public class MainActivity extends AppCompatActivity {
 
     private Dialog resultDialog;
     private ProgressBar progressBar;
+    private AmbientLight ambientLight;
+    private TextView light;
     boolean measuring = false;
 
 
     private SensorManager sensorManager;
-    private Sensor lightSensor;
-    private SensorEventListener lightEventListener;
-    private View root;// zu textfeld
-    private float maxValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,44 +83,11 @@ public class MainActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.previewView);
         progressBar = findViewById(R.id.progressBar);
+        light = findViewById(R.id.light);
         //root = findViewById(R.id.root);
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-
-
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-
-        if (lightSensor == null) {
-            Toast.makeText(this, "The device has no light sensor !", Toast.LENGTH_SHORT).show();
-            Log.i("BLA", "NOT WORK");
-        }
-
-        // max value for light sensor
-        maxValue = lightSensor.getMaximumRange();
-
-        AppCompatActivity context = this;
-
-        lightEventListener = new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent sensorEvent) {
-
-                float value = sensorEvent.values[0];
-                //getSupportActionBar().setTitle("Luminosity : " + value + " lx");
-
-
-                // between 0 and 255
-                int newValue = (int) (255f * value / maxValue);
-                Log.i("BLA", "Licht: " + value);
-                Toast.makeText(context, ""+ value, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int i) {
-                Log.i("BLA", "CHANGE");
-            }
-        };
-        sensorManager.registerListener(lightEventListener, lightSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     /**
@@ -134,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
     private void onClick() {
         if (hasCameraPermission()) {
             enableCamera();
+            ambientLight = new AmbientLight(this, sensorManager);
+            ambientLight.startLightSensor();
         } else {
             requestPermission();
         }
@@ -240,7 +208,13 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgress(progress);
     }
 
-    public void showResult(double result) {
+    public void showPulseResult(double result) {
+        ambientLight.stopLightSensor();
         showDialog(result);
+    }
+
+    public void showLightResult(double result) {
+        light.setText("Licht: " + (int) result + " lx"); // only .0 lx values are returned
+        Log.i("BLA", "Licht: " + result);
     }
 }
