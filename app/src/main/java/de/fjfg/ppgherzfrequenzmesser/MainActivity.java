@@ -25,19 +25,26 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.graphics.drawable.ColorDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.icu.util.Measure;
 import android.media.Image;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -56,9 +63,16 @@ public class MainActivity extends AppCompatActivity {
 
     private PreviewView previewView;
 
-    Dialog resultDialog;
-    ProgressBar progressBar;
+    private Dialog resultDialog;
+    private ProgressBar progressBar;
     boolean measuring = false;
+
+
+    private SensorManager sensorManager;
+    private Sensor lightSensor;
+    private SensorEventListener lightEventListener;
+    private View root;// zu textfeld
+    private float maxValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +84,44 @@ public class MainActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.previewView);
         progressBar = findViewById(R.id.progressBar);
+        //root = findViewById(R.id.root);
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+        if (lightSensor == null) {
+            Toast.makeText(this, "The device has no light sensor !", Toast.LENGTH_SHORT).show();
+            Log.i("BLA", "NOT WORK");
+        }
+
+        // max value for light sensor
+        maxValue = lightSensor.getMaximumRange();
+
+        AppCompatActivity context = this;
+
+        lightEventListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+
+                float value = sensorEvent.values[0];
+                //getSupportActionBar().setTitle("Luminosity : " + value + " lx");
+
+
+                // between 0 and 255
+                int newValue = (int) (255f * value / maxValue);
+                Log.i("BLA", "Licht: " + value);
+                Toast.makeText(context, ""+ value, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+                Log.i("BLA", "CHANGE");
+            }
+        };
+        sensorManager.registerListener(lightEventListener, lightSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     /**
