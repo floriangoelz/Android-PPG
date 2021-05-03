@@ -1,60 +1,29 @@
 package de.fjfg.ppgherzfrequenzmesser;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageProxy;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleOwner;
-
-import de.fjfg.ppgherzfrequenzmesser.classes.AmbientLight;
-import de.fjfg.ppgherzfrequenzmesser.classes.Measurement;
-
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.graphics.drawable.ColorDrawable;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.icu.util.Measure;
-import android.media.Image;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Size;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.google.common.util.concurrent.ListenableFuture;
 
-import org.w3c.dom.Text;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
+
+import de.fjfg.ppgherzfrequenzmesser.classes.AmbientLight;
+import de.fjfg.ppgherzfrequenzmesser.classes.Measurement;
 
 /**
  * The main activity of the application. Used to handle all visuals that are shown on the main screen
@@ -63,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
     private static final String LIGHT_MESSAGE = "Messung starten um Umgebungslicht anzuzeigen";
+    private static final String ALREADY_RUNNING = "Es läuft bereits eine Messung";
+    private static final String NO_LIGHTSENSOR = "Das Gerät besitzt keinen Lichtsensor.";
+
 
     private PreviewView previewView;
 
@@ -90,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        runningToast = Toast.makeText(this, "Es läuft bereits eine Messung", Toast.LENGTH_SHORT);
+        ambientLight = new AmbientLight(this, sensorManager);
+        runningToast = Toast.makeText(this, ALREADY_RUNNING, Toast.LENGTH_SHORT);
         light.setText(LIGHT_MESSAGE);
     }
 
@@ -103,9 +76,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void onClick() {
         if (hasCameraPermission()) {
-            enableCamera();
-            ambientLight = new AmbientLight(this, sensorManager);
-            ambientLight.startLightSensor();
+            if (!measuring) {
+                enableCamera();
+                ambientLight.startLightSensor();
+            } else {
+                System.out.println("Test");
+                runningToast.show();
+            }
         } else {
             requestPermission();
         }
@@ -139,25 +116,21 @@ public class MainActivity extends AppCompatActivity {
      * needs to be finished before starting a new one
      */
     private void enableCamera() {
-        if (!measuring) {
-            ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-            MainActivity context = this;
-            cameraProviderFuture.addListener(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                        Measurement measurement = new Measurement(cameraProvider, context, previewView);
-                        measurement.startMeasuring();
-                        measuring = true;
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        MainActivity context = this;
+        cameraProviderFuture.addListener(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                    Measurement measurement = new Measurement(cameraProvider, context, previewView);
+                    measurement.startMeasuring();
+                    measuring = true;
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
                 }
-            }, ContextCompat.getMainExecutor(this));
-        } else {
-            runningToast.show();
-        }
+            }
+        }, ContextCompat.getMainExecutor(this));
     }
 
     /**
@@ -194,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 measuring = false;
-                ambientLight.stopLightSensor();
                 resultDialog.dismiss();
             }
         });
@@ -233,6 +205,6 @@ public class MainActivity extends AppCompatActivity {
      * Updates the TextView of the activity to show that the device got no light sensor
      */
     public void noLightSensor() {
-        light.setText("Das Gerät besitzt keinen Lichtsensor.");
+        light.setText(NO_LIGHTSENSOR);
     }
 }

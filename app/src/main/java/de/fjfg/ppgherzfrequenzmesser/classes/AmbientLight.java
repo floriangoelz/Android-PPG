@@ -1,12 +1,9 @@
 package de.fjfg.ppgherzfrequenzmesser.classes;
 
-import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
-import android.widget.Toast;
 
 import de.fjfg.ppgherzfrequenzmesser.MainActivity;
 
@@ -19,7 +16,6 @@ public class AmbientLight {
     private SensorEventListener lightEventListener;
     private MainActivity context;
     private SensorManager sensorManager;
-    private boolean started = false;
 
     public AmbientLight(MainActivity context, SensorManager sensorManager) {
         this.context = context;
@@ -40,13 +36,11 @@ public class AmbientLight {
     }
 
     /**
-     * Starts the measuring of light via light sensor if the measuring
-     * is not already running and the device has a light sensor
+     * Starts the measuring of light via light sensor if the device has a light sensor
      */
     public void startLightSensor() {
-        if(hasLightSensor() && !started) {
+        if (hasLightSensor()) {
             registerLightSensor();
-            started = true;
         }
     }
 
@@ -54,10 +48,7 @@ public class AmbientLight {
      * Stops measuring light with the light sensor
      */
     public void stopLightSensor() {
-        if(started) {
-            sensorManager.unregisterListener(lightEventListener);
-            started = false;
-        }
+        sensorManager.unregisterListener(lightEventListener);
     }
 
     /**
