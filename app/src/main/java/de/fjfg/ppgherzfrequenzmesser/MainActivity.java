@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         progressBar = findViewById(R.id.progressBar);
         light = findViewById(R.id.light);
-        //root = findViewById(R.id.root);
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -218,7 +217,20 @@ public class MainActivity extends AppCompatActivity {
         showDialog(result);
     }
 
+    /**
+     * Updates the TextView of the activity to show the measured light value
+     *
+     * @param result the current value that is delivered by the lightsensor (in lux)
+     */
     public void showLightResult(double result) {
-        light.setText("Umgebungslicht: " + (int) result + " lx"); // only .0 lx values are returned
+        // casting the result to an int since only X.0 lx values are returned by the sensor
+        light.setText("Umgebungslicht: " + (int) result + " lx");
+    }
+
+    /**
+     * Updates the TextView of the activity to show that the device got no light sensor
+     */
+    public void noLightSensor() {
+        light.setText("Das Gerät besitzt keinen Lichtsensor.");
     }
 }

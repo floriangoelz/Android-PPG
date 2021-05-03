@@ -38,7 +38,7 @@ import de.fjfg.ppgherzfrequenzmesser.MainActivity;
  * Class to handle a measurement. All raw measuring data will be stored inside this class
  */
 public class Measurement {
-    // the offset in milliseconds after which the measureing will actually start
+    // the offset in milliseconds after which the measuring will actually start
     static final int OFFSET = 2000;
     // the duration of the measure in milliseconds
     static final int MEASURE_TIME = 15000;
@@ -76,7 +76,7 @@ public class Measurement {
     }
 
     /**
-     * As the main function of this class, this is the function that is continously called during
+     * As the main function of this class, this is the function that is continuously called during
      * the process of collecting data.
      *
      * For each captured imaged the code inside the analyze(...) Block is called which first determines
@@ -109,7 +109,6 @@ public class Measurement {
                 }
                 image.close();
                 double x = ((difference - OFFSET) / MEASURE_TIME) * 100;
-                Log.i("BLA","" + x);
                 context.showProgress((int)x);
             }
         });
@@ -185,22 +184,8 @@ public class Measurement {
                 }
             }
             averages.add(getMean(redvalues));
-            Log.i("BLA", "" + redvalues.size());
-            System.out.println(redvalues.size());
             redvalues.clear();
         }
-        DecimalFormat df = new DecimalFormat("###.###");
-        String averageStr = "";
-        for (int i = 0; i < averages.size(); i++) {
-            averageStr += ", " + df.format(averages.get(i));
-        }
-        averageStr = averageStr.substring(2);
-        averageStr = "Redvalues large: [" + averageStr + "]";
-        averageStr = averageStr.replace(", ", "%%");
-        averageStr = averageStr.replace(",", ".");
-        averageStr = averageStr.replace("%%", ", ");
-        Log.i("RESULT", averageStr);
-
         return  getHeartRateFourier(averages);
     }
 
@@ -290,7 +275,6 @@ public class Measurement {
                 smooth.add(getMean(currentValues));
             }
         }
-        System.out.println("Smooth values: " + smooth);
         return smooth;
     }
 
