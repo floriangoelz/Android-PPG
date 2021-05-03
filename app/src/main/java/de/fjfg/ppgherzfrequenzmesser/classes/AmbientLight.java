@@ -74,7 +74,7 @@ public class AmbientLight {
 
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
-                // not needed
+                // not needed since the accuracy can't change
             }
         };
         sensorManager.registerListener(lightEventListener, lightSensor, SensorManager.SENSOR_DELAY_FASTEST);

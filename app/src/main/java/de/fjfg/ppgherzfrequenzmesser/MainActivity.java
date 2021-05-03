@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private AmbientLight ambientLight;
     private TextView light;
+    private Toast runningToast;
     boolean measuring = false;
 
 
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
+        runningToast = Toast.makeText(this, "Es läuft bereits eine Messung", Toast.LENGTH_SHORT);
         light.setText(LIGHT_MESSAGE);
     }
 
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, ContextCompat.getMainExecutor(this));
         } else {
-            //TODO Fehlermeldung Messung läuft gerade
+            runningToast.show();
         }
     }
 
@@ -193,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 measuring = false;
+                ambientLight.stopLightSensor();
                 resultDialog.dismiss();
             }
         });
