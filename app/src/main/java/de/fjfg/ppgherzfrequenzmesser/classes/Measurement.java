@@ -32,6 +32,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+
 import de.fjfg.ppgherzfrequenzmesser.MainActivity;
 
 /**
@@ -49,7 +50,7 @@ public class Measurement {
     MainActivity context;
     PreviewView previewView;
 
-    public Measurement(@NonNull ProcessCameraProvider cameraProvider, MainActivity context, PreviewView previewView){
+    public Measurement(@NonNull ProcessCameraProvider cameraProvider, MainActivity context, PreviewView previewView) {
         this.cameraProvider = cameraProvider;
         this.context = context;
         this.previewView = previewView;
@@ -59,17 +60,17 @@ public class Measurement {
     /**
      * Is used to start the measuring of the instance it is called on
      */
-    public void startMeasuring(){
+    public void startMeasuring() {
         startImageAnalysis();
     }
 
     /**
      * Is called after the needed data is collected in order to unbind
      * the camera provider and calculate the pulse data
-     *
+     * <p>
      * Sets the result inside the MainActivity after it was calculated
      */
-    private void finishMeasuring(){
+    private void finishMeasuring() {
         cameraProvider.unbindAll();
         double result = calculateValues();
         context.showPulseResult(result);
@@ -78,14 +79,14 @@ public class Measurement {
     /**
      * As the main function of this class, this is the function that is continuously called during
      * the process of collecting data.
-     *
+     * <p>
      * For each captured imaged the code inside the analyze(...) Block is called which first determines
      * how much time has passed since the measuring was started.
-     *
+     * <p>
      * If the time exceeds the set OFFSET
      * it starts converting every image and storing the image in a list of bitmaps while constantly
      * updating the progress bar
-     *
+     * <p>
      * After the MEASURE_TIME is exceeded, the collected the function calls finishMeasuring()
      * which closes the camera and starts calculating the raw data.
      */
@@ -108,7 +109,7 @@ public class Measurement {
                 }
                 image.close();
                 double x = ((difference - OFFSET) / MEASURE_TIME) * 100; // progress in percent
-                context.showProgress((int)x);
+                context.showProgress((int) x);
             }
         });
         Preview preview = new Preview.Builder().build();
@@ -154,11 +155,11 @@ public class Measurement {
 
     /**
      * Function to calculate the measured BPM using other functions.
-     *
+     * <p>
      * The steps per Image are as following:
      * - Iterating the left and right 10% of the image and extracting the redvalue
      * - Calculating the average redvalue of the image and storing it as an average
-     *
+     * <p>
      * After there is an average redvalue for each image, all values are calculated using
      * fourier-transformation
      *
@@ -185,7 +186,7 @@ public class Measurement {
             averages.add(getMean(redvalues));
             redvalues.clear();
         }
-        return  getHeartRateFourier(averages);
+        return getHeartRateFourier(averages);
     }
 
     /**
@@ -195,7 +196,7 @@ public class Measurement {
      * @param averages the averages of all measured red values per image
      * @return the calculated heartrate in bpm
      */
-    private double getHeartRateFourier(List<Double> averages){
+    private double getHeartRateFourier(List<Double> averages) {
         List<Double> smoothValues = getSmoothValues(averages);
         DoubleFFT_1D fft = new DoubleFFT_1D(smoothValues.size());
         double[] values = new double[smoothValues.size() * 2];
@@ -212,16 +213,16 @@ public class Measurement {
         fft.realForward(values);
 
         //separate real and imaginary values of the result
-        for(int i = 0; i < values.length; i++){
-            if(i % 2 == 0){
+        for (int i = 0; i < values.length; i++) {
+            if (i % 2 == 0) {
                 realValues.add(values[i]);
-            }else{
+            } else {
                 imaginaryValues.add(values[i]);
             }
         }
 
         //calculate the absolute value of each result
-        for(int i = 0; i < realValues.size(); i++){
+        for (int i = 0; i < realValues.size(); i++) {
             double absoluteValue = Math.sqrt(realValues.get(i) * realValues.get(i) + imaginaryValues.get(i) * imaginaryValues.get(i));
             absoluteValues.add(absoluteValue);
         }
@@ -230,9 +231,9 @@ public class Measurement {
         List<Integer> peaks = getPeaks(absoluteValues);
 
 
-        for(int i = peaks.size() - 1; i >= 0; i--){
+        for (int i = peaks.size() - 1; i >= 0; i--) {
             //remove peaks below 0.5 Hz and above 5 Hz
-            if(peaks.get(i) < 10 || peaks.get(i) > 75){
+            if (peaks.get(i) < 10 || peaks.get(i) > 75) {
                 peaks.remove(i);
             }
         }
@@ -241,8 +242,8 @@ public class Measurement {
         //find highest maximum
         double max = 0;
         double maxIndex = 0;
-        for(int i = 0; i < peaks.size(); i++){
-            if(absoluteValues.get(peaks.get(i)) > max){
+        for (int i = 0; i < peaks.size(); i++) {
+            if (absoluteValues.get(peaks.get(i)) > max) {
                 max = absoluteValues.get(peaks.get(i));
                 maxIndex = peaks.get(i);
             }
@@ -253,11 +254,11 @@ public class Measurement {
 
     /**
      * Function to smoothen the given redvalues
-     *
+     * <p>
      * To smoothen the resulting values, the average values
      * get calculated using the average between the value itself
      * and 6 values before the chosen value.
-     *
+     * <p>
      * This results in a returned list that has the size of
      * n-6 if n is the size of the given list.
      *

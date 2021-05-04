@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -59,12 +60,13 @@ public class MainActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         progressBar = findViewById(R.id.progressBar);
         light = findViewById(R.id.light);
+        light.setText(LIGHT_MESSAGE);
         resultDialog = new Dialog(this);
         resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         ambientLight = new AmbientLight(this, sensorManager);
         runningToast = Toast.makeText(this, ALREADY_RUNNING, Toast.LENGTH_SHORT);
-        light.setText(LIGHT_MESSAGE);
+
     }
 
     /**
@@ -80,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
                 enableCamera();
                 ambientLight.startLightSensor();
             } else {
-                System.out.println("Test");
                 runningToast.show();
             }
         } else {
@@ -186,8 +187,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showPulseResult(double result) {
-        ambientLight.stopLightSensor();
-        light.setText(LIGHT_MESSAGE);
+        if (ambientLight.stopLightSensor()) {
+            light.setText(LIGHT_MESSAGE);
+        }
         showDialog(result);
     }
 

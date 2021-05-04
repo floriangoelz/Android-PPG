@@ -47,8 +47,12 @@ public class AmbientLight {
     /**
      * Stops measuring light with the light sensor
      */
-    public void stopLightSensor() {
-        sensorManager.unregisterListener(lightEventListener);
+    public boolean stopLightSensor() {
+        if (hasLightSensor()) {
+            sensorManager.unregisterListener(lightEventListener);
+            return true;
+        }
+        return false;
     }
 
     /**
