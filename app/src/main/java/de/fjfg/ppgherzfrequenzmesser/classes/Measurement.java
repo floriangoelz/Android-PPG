@@ -89,7 +89,6 @@ public class Measurement {
      * After the MEASURE_TIME is exceeded, the collected the function calls finishMeasuring()
      * which closes the camera and starts calculating the raw data.
      */
-    // TODO funktion ggf. aufräumen
     private void startImageAnalysis() {
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder().setTargetResolution(new Size(240, 320))
@@ -102,13 +101,13 @@ public class Measurement {
                     startTime = System.currentTimeMillis();
                 }
                 double difference = System.currentTimeMillis() - startTime;
-                if (difference >= OFFSET && difference <= OFFSET + MEASURE_TIME) {
+                if (difference >= OFFSET && difference <= OFFSET + MEASURE_TIME) { // store images
                     bitmaps.add(yuvToBitmap(image.getImage()));
-                } else if (difference > OFFSET) {
+                } else if (difference > OFFSET) { // after data has been collected
                     finishMeasuring();
                 }
                 image.close();
-                double x = ((difference - OFFSET) / MEASURE_TIME) * 100;
+                double x = ((difference - OFFSET) / MEASURE_TIME) * 100; // progress in percent
                 context.showProgress((int)x);
             }
         });
@@ -174,9 +173,9 @@ public class Measurement {
             width = map.getWidth();
             height = map.getHeight();
             for (int i = 0; i < width; i++) {
-                if (i <= width * 0.1 || i >= width * 0.9) {
+                if (i <= width * 0.1 || i >= width * 0.9) { // only 10% of pixels on both sides
                     for (int j = 0; j < height; j++) {
-                        if (j <= height * 0.1 || j >= height * 0.9) {
+                        if (j <= height * 0.1 || j >= height * 0.9) { // only 10% of pixels on both sides
                             int color = map.getPixel(i, j);
                             redvalues.add((color & 0xff0000) >> 16);
                         }
@@ -248,7 +247,6 @@ public class Measurement {
                 maxIndex = peaks.get(i);
             }
         }
-
         //calculate heart rate
         return (maxIndex / 15) * 60;
     }
@@ -319,7 +317,6 @@ public class Measurement {
                 peakIndices.add(i);
             }
         }
-        System.out.println("Peaks: " + peakIndices);
         return peakIndices;
     }
 }
